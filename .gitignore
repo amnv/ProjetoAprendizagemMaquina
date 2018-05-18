@@ -1,1 +1,4 @@
 *.pdf
+*.csv
+.idea/
+_pycache_/
