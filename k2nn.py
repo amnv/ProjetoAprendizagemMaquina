@@ -6,6 +6,10 @@ import time
 
 
 def euclideanDistance(instance1, instance2, length):
+    """
+    :param length: size of instances. Both instances must have the same size
+    :return: the euclidian distance between them
+    """
     distance = 0
     for x in range(length):
         distance += pow((instance1[x] - instance2[x]), 2)
@@ -40,7 +44,8 @@ def getUnionset(instances1, instances2): #merges two lists into one
 def getNeighborsfromUnion(instancex, instances1, instances2, k): #gets the k neighbors from instancex and the union of instances1 and instances2
     return getNeighbors(getUnionset(instances1, instances2),instancex, k)
 
-def getListIndexdistances(instance, instancesList): #returns a list of indexes and distances from instance to every element of instancesList 
+def getListIndexdistances(instance, instancesList):
+    # Returns a list of indexes and distances from instance to every element of instancesList
     list = []
     for x in range(len(instancesList)):
         list.append([x, euclideanDistance(instance, instancesList[0], len(instance)-1)])
