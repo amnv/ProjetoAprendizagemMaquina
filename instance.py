@@ -1,5 +1,5 @@
 import operator
-from math import e
+import math
 import k2nn
 from functools import reduce
 
@@ -30,7 +30,7 @@ class Instance:
         return self.neighbors[neighbor]
 
     def set_selection_weight(self, key, w1):
-        self.neighbors[key] = (1 + w1)/e
+        self.neighbors[key] = (1 + w1)/math.e
 
     def ss(self, instance):
         """Step 5.3 article
@@ -62,7 +62,29 @@ class Instance:
 
         return npn
 
-    # def selection_weight_formula(self, npn, w1, w2, r1, r2):
-    #     """formula (2) article"""
-    #     overgeneralization_factor =
-    #     1()
+    def class_entropy(self, gama_mi, class_set):
+        gama_m = class_set.shape[0]
+        ret = 0
+
+        for c in class_set:
+            ret += (c / gama_mi * math.log10(c / gama_mi)) / math.log10(gama_m)
+
+        return ret
+
+    def selection_weight_formula(self, npn, w1, w2, r1, r2, mc, ma, mi, minorities):
+        """formula (2) article"""
+
+        gama_ma = ma.shape[0]
+        gama_mi = mi.shape[0]
+        gama_c = mc.shape[0]
+
+        # Minority classes entropy
+        e_mi = self.class_entropy(mi, minorities)
+
+        # Majority class entropy
+        e_ma = self.class_entropy(mi, minorities)
+
+        overgeneralization_factor = math.exp(r1 * (gama_mi / gama_c) + r2 * e_mi + w2 * (r1*gama_ma/gama_c + 2 * e_ma))
+        difficulty_factor = math.exp(-1 * (gama_c / gama_c + gama_ma + gama_mi))
+
+        return 1 / (overgeneralization_factor + w1 * difficulty_factor)
