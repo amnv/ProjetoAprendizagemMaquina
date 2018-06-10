@@ -72,7 +72,11 @@ class Instance:
         return ret
 
     def selection_weight_formula(self, npn, w1, w2, r1, r2, mc, ma, mi, minorities):
-        """formula (2) article"""
+        """formula (2) article
+            :param mc class c instances
+            :param ma majority class instance
+            :param mi minority class instance
+            :param minorities minorities classes"""
 
         gama_ma = ma.shape[0]
         gama_mi = mi.shape[0]
