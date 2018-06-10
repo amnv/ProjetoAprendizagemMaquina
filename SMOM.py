@@ -6,8 +6,8 @@ from instance import Instance
 
 class SMOM:
     def __init__(self):
-         self.outstanding  = []
-         self.trapped = []
+        self.outstanding = []
+        self.trapped = []
 
     @staticmethod
     def split_classes(data, minority_class):
@@ -26,7 +26,7 @@ class SMOM:
 
         return k3neighbors, k1th, distance
 
-    def selection_weigth(self, trapped_instances, w1):
+    def selection_weigth(self, trapped_instances, w1, w2, r1, r2):
         """ Return a dict of weight for each instance
             @:param trapped_instance list of type instance
         """
@@ -40,8 +40,27 @@ class SMOM:
                 else:
                     smaller_distances = instance.ss(instance)
                     npn = instance.dpn(instance, neighbor, smaller_distances)
-                    instance.set_selection_weight()
+                    ma_class, mi_class, minorities_class_set = self.get_classes(trapped_instances)
+                    ma = self.get_class_set(trapped_instances, ma_class)
+                    mi = self.get_class_set(trapped_instances, mi_class)
+                    minorities = self.get_class_set(trapped_instances, minorities_class_set)
+                    instance.set_selection_weight(instance.selection_weight_formula(npn, w1, w2, r1, r2, trapped_instances, ma, mi, minorities))
 
+    def get_classes(self, data):
+        # Get majority class
+        ma = data.iloc[:, -1].value_counts().idxmax()
+
+        # Get minority class
+        mi = data.iloc[:, -1].value_counts().idxmin()
+
+        # Get minority classes set
+        mi_aux = data.iloc[:, -1].value_counts() == data.iloc[:, -1].value_counts().min()
+        mi_set = mi_aux[mi_aux == True].keys()
+
+        return ma, mi, mi_set
+
+    def get_class_set(self, data, class_name):
+        return data[data.iloc[:, -1] == class_name]
 
     @staticmethod
     def main():
@@ -53,5 +72,6 @@ class SMOM:
 
 
         #print(SMOM.nearestK3Instances(instance, neighbors,1,2))
+
 
 SMOM.main()
