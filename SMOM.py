@@ -42,6 +42,18 @@ class SMOM:
                     npn = instance.dpn(instance, neighbor, smaller_distances)
                     instance.set_selection_weight()
 
+    @staticmethod
+    def filterOutstanding(sc, cl):
+        outstanding = []
+        trapped = []
+
+        for instance in sc:
+            if cl[instance] != 0:
+                outstanding.append(instance)
+            else:
+                trapped.append(instance)
+
+        return outstanding, trapped
 
     @staticmethod
     def main():
