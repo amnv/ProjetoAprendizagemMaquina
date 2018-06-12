@@ -46,6 +46,20 @@ class SMOM:
                     minorities = self.get_class_set(trapped_instances, minorities_class_set)
                     instance.set_selection_weight(instance.selection_weight_formula(npn, w1, w2, r1, r2, trapped_instances, ma, mi, minorities))
 
+
+    @staticmethod
+    def filterOutstanding(sc, cl):
+        outstanding = []
+        trapped = []
+
+        for instance in sc:
+            if cl[instance] != 0:
+                outstanding.append(instance)
+            else:
+                trapped.append(instance)
+
+        return outstanding, trapped
+
     def get_classes(self, data):
         # Get majority class
         ma = data.iloc[:, -1].value_counts().idxmax()
