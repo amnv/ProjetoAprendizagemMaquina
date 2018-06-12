@@ -2,7 +2,7 @@ import pandas as pd
 import k2nn as knn
 import math
 from instance import Instance
-
+import random as rd
 
 class SMOM:
     def __init__(self):
@@ -75,6 +75,24 @@ class SMOM:
 
     def get_class_set(self, data, class_name):
         return data[data.iloc[:, -1] == class_name]
+
+    def generate_synthetic_instances(self, sc, g):
+        xj = 0
+        si = []
+        for times in range(g):
+            for i in sc:
+                if i in self.trapped:
+                    xj = i.get_neighbor_high_weight()
+                else:
+                    xj = rd.choice(i.get_nk1())
+
+                diff = (xj - i)
+                gama = [rd.randrange(0, 2) for i in range(len(xj))]
+                new_instance = i + diff.dot(gama)
+
+                si.append(new_instance)
+
+        return si
 
     @staticmethod
     def main():

@@ -8,7 +8,7 @@ class Instance:
     def __init__(self):
         # tuple key where key is the neighbor and the value is the selection weight
         self.neighbors = {}
-
+        self.nk1 = {}
         self.Fs_Fd = {}
 
     def set_fs_fd(self, fs):
@@ -20,6 +20,9 @@ class Instance:
     def get_fd(self):
         return list(self.Fs_Fd.values())
 
+    def get_nk1(self):
+        return self.nk1.keys()
+
     def add_neighbor(self, neighbor):
         self.neighbors[neighbor] = 0
 
@@ -28,6 +31,9 @@ class Instance:
 
     def get_neighbor_weight(self, neighbor):
         return self.neighbors[neighbor]
+
+    def get_neighbor_high_weight(self):
+        return max(self.neighbors, key=self.neighbors.get)
 
     def set_selection_weight(self, key, w1):
         self.neighbors[key] = (1 + w1)/math.e
