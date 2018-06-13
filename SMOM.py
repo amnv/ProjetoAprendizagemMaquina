@@ -95,6 +95,25 @@ class SMOM:
         return si
 
     @staticmethod
+    def get_g_for_each_xi(xi, zeta, sc):
+        g, remainder = SMOM.get_floor_remainder(zeta, len(sc))
+
+        if xi == sc[-1]: ##
+            return g+remainder
+        else:
+            return g
+
+    @staticmethod
+    def get_floor_remainder(zeta, sc_size):
+        if (zeta%sc_size) == 0:
+            return zeta/sc_size, 0
+        else:
+            g_for_each_xi = int(math.floor(zeta/sc_size))
+            remainder = zeta%sc_size
+            return g_for_each_xi, remainder
+        
+
+    @staticmethod
     def main():
         """neighbors = [[1,1,1,'a'], [2,2,2,'a'], [3,3,3,'b']]
         instance = [2,3,6,'f']"""
@@ -102,6 +121,11 @@ class SMOM:
         instances = [Instance(), Instance(), Instance()]
         instances[0]
 
+        # zeta = 16
+        # sc = [1,2,3]
+        
+        # for i in sc:
+        #   print(SMOM.get_g_for_each_xi(i, zeta, sc))
 
         #print(SMOM.nearestK3Instances(instance, neighbors,1,2))
 
