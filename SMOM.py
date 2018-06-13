@@ -38,7 +38,7 @@ class SMOM:
                 elif (instance in neighbor.get_list_neighbor) and (neighbor_weight != 0):
                     instance.set_selection_weight(neighbor_weight)
                 else:
-                    smaller_distances = instance.ss(instance)
+                    smaller_distances = instance.ss(neighbor)
                     npn = instance.dpn(instance, neighbor, smaller_distances)
                     ma_class, mi_class, minorities_class_set = self.get_classes(trapped_instances)
                     ma = self.get_class_set(trapped_instances, ma_class)
@@ -111,7 +111,7 @@ class SMOM:
             g_for_each_xi = int(math.floor(zeta/sc_size))
             remainder = zeta%sc_size
             return g_for_each_xi, remainder
-        
+
 
     @staticmethod
     def main():
@@ -121,13 +121,12 @@ class SMOM:
         instances = [Instance(), Instance(), Instance()]
         instances[0]
 
-        # zeta = 16
+        # zeta = 16 
         # sc = [1,2,3]
         
         # for i in sc:
         #   print(SMOM.get_g_for_each_xi(i, zeta, sc))
 
         #print(SMOM.nearestK3Instances(instance, neighbors,1,2))
-
 
 SMOM.main()
