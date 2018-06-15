@@ -47,7 +47,7 @@ class SMOM:
                 neighbor_weight = neighbor.get_list_neighbor()
                 if (neighbor in self.outstanding) and (instance in neighbor.get_list_neighbor()):
                     instance.set_selection_weight(neighbor, w1)
-                elif (instance in neighbor.get_list_neighbor) and (neighbor_weight != 0):
+                elif (insta     nce in neighbor.get_list_neighbor) and (neighbor_weight != 0):
                     instance.set_selection_weight(neighbor_weight)
                 else:
                     smaller_distances = instance.ss(neighbor)
@@ -64,8 +64,10 @@ class SMOM:
         outstanding = []
         trapped = []
 
-        for instance in sc:
-            if cl[instance] != 0:
+        for instanceIndex in data[data.iloc[:, -1] == minor].shape:
+            instance = data.iloc[instanceIndex]
+            
+            if cl[instanceIndex] != 0:
                 outstanding.append(instance)
             else:
                 trapped.append(instance)

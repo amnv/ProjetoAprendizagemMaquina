@@ -22,6 +22,7 @@ for index, xi in sc.iterrows():
 #3.
 
 #4.
+outstanding, trapped = SMOM.filterOutstanding(sc, cl)
 
 #5.
 #  5.1)
@@ -33,6 +34,7 @@ for index, xi in sc.iterrows():
 #  6.2)
 
 #7.
+# get_g_for_each_xi(xi, zeta, sc)
 
 #8.
 #   8.1.
