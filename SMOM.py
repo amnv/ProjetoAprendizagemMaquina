@@ -39,34 +39,58 @@ class SMOM:
         return k3neighbors, dist, k1th, distance, k3
 
     @staticmethod
-    def selection_weigth(self, data, outstandings, trapped_instances, k3, w1, w2, r1, r2, xi, xi_fs_fd):
+    def selection_weigth(data, outstandings, trapped_instances, k3, w1, w2, r1, r2, xi_fs_fd):
         """ Return a dict of weight for each instance
             @:param trapped_instance list of type instance
         """
         knn3 = NearestNeighbors(n_neighbors=k3)
-        for instance in trapped_instances:                 
-            knn3.fit(data.iloc[:, :data.shape[1]], data.iloc[:, -1])
-            dist, neighbors = knn3.kneighbors([instance], return_distance=True)
-            dist = dist.tolist()[0]
-            neighbors = neighbors.tolist()[0]
-            weightDict = {str:{}}
 
-            for neighbor in range(len(neighbors)):
-                neighbor_weight = xi_fs_fd[instance][neighbor]
-                if (neighbor in self.outstanding) and (instance in neighbor.get_list_neighbor()):
-                    instance.set_selection_weight(neighbor, w1)
-                elif (instance in neighbor.get_list_neighbor) and (neighbor_weight != 0):
-                    instance.set_selection_weight(neighbor_weight)
-                else:
-                    smaller_distances = instance.ss(neighbor)
-                    npn = instance.dpn(instance, neighbor, smaller_distances)
-                    ma_class, mi_class, minorities_class_set = self.get_classes(trapped_instances)
-                    ma = self.get_class_set(trapped_instances, ma_class)
-                    mi = self.get_class_set(trapped_instances, mi_class)
-                    minorities = self.get_class_set(trapped_instances, minorities_class_set)
-                    instance.set_selection_weight(instance.selection_weight_formula(npn, w1, w2, r1, r2, trapped_instances, ma, mi, minorities))
-                weightDict[instance][neighbor] = instance.get_neighbor_weight(neighbor)
-        return weightDict
+        sw = {}
+
+        # print(trapped_instances)
+
+        for xi in trapped_instances:
+            # index = data[data == instance].index
+            index = data[data == xi].dropna(axis=0).index[0] 
+            # print(index)
+
+            # print(xi_fs_fd[index].keys())
+
+            for xj in xi_fs_fd[index].keys():
+                xi_sw = {}
+                # print(xi_fs_fd[xj])
+                # lista = list(filter(lambda x: len(x) > 0, xi_fs_fd.values()))  
+                
+                vis_xj = xi_fs_fd.get(xj, {})
+                print(xi)
+                if (xj in outstandings) and (xi in xi_fs_fd[xj].keys()):
+                    xi_sw[xj] = 1 + w1/math.e              
+                    # print(neighbor)
+                #elif (xj in xi_fs_fd):
+                #     bol = xi in xi_fs_fd[xj].keys() 
+                #     print(bol)
+                
+                #elif (len(vis_xj) > 0) and (vis_xj.get(index, None) != None):
+                elif (xj in xi_fs_fd.keys()) and (index in xi_fs_fd[xj].keys()) and (xj in sw) and (index in sw[xj]):
+                    print("foi")
+                    sw[index][xj] = sw[xj][index]
+        print sw
+        return 0
+                # if (neighbor in self.outstanding) and (instance in neighbor.get_list_neighbor()):
+                #     instance.set_selection_weight(neighbor, w1)
+                # elif (instance in neighbor.get_list_neighbor) and (neighbor_weight != 0):
+                #     instance.set_selection_weight(neighbor_weight)
+                # else:
+                #     smaller_distances = instance.ss(neighbor)
+                #     npn = instance.dpn(instance, neighbor, smaller_distances)
+                #     ma_class, mi_class, minorities_class_set = self.get_classes(trapped_instances)
+                #     ma = self.get_class_set(trapped_instances, ma_class)
+                #     mi = self.get_class_set(trapped_instances, mi_class)
+                #     minorities = self.get_class_set(trapped_instances, minorities_class_set)
+                #     instance.set_selection_weight(instance.selection_weight_formula(npn, w1, w2, r1, r2, trapped_instances, ma, mi, minorities))
+                # weightDict[instance][neighbor] = instance.get_neighbor_weight(neighbor)
+        
+        # return weightDict
 
 
     @staticmethod
@@ -152,8 +176,8 @@ class SMOM:
                 fs.append(k3neighbors[i])
                 fd.append(dist[i])
 
-        fs = numpy.concatenate([fs, neighbors])
-        fd = numpy.concatenate([fd, neighbors_distance])
+        fs = fs + neighbors
+        fd = fd + neighbors_distance
         
         return k3neighbors, fs, fd        
         
