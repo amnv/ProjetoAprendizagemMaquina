@@ -1,38 +1,44 @@
 import pandas as pd
-import math
-
 from SMOM import SMOM
 
-def probability_distribution(xi, k1neighbors, w1): # the return is a list of probabilities with the ormat [xj, xipj], xj is the instance from a different class and xipj it probability
-    xipj = []
-    flag = True
-    weightlist = []
+data = pd.read_csv("data/data.csv", header=None)
+data = data.iloc[:, 1:]
+#min_class = data.iloc[:, -1].value_counts().min()
+min_class = 16 #classe com 67 instancias
+k1 = 12
+k2 = 8
 
-    for xj in k1neighbors:
-        weightlist.append(xi.get_neighbor_weight(xj))
-        smaller_distances= xi.ss(xj)
-        npn = instance.dpn(xi, xj, smaller_distances)
-            
-        for element in npn:
-            if element[-2][-1] == xi[-1]:
-                flag = False
-                break
-            
-        if(xj[-2][-1] != xi[-1]):
-                xipj.append([xj,xi.get_neighbor_weight(xj)/(math.sum(weightlist))])
+#1. Dividindo dados entre classe minoriataria e outros
+sc, others =  SMOM.split_classes(data, min_class) 
 
-    if flag:
-        weight = 1 + (w1/math.e)
-        k1neighbors.append([xi, weight])
-        
-    return xipj
+#2.
+for index, xi in sc.iterrows():
+# 2.1)
+    k3neighbors, neighbors_distance, k1th, distance, k3 = SMOM.nearestK3Instances(xi, sc, k1, k2)
+# 2.2)
+    k3EnemyNeighbor, fd_fs = SMOM.nearEnemy(xi, others, k3, distance, k3neighbors, neighbors_distance)
+# 2.3)
+    k2_neighbors = SMOM.k2_neighbors(k3neighbors, k3EnemyNeighbor, xi, k2)
+#3.
+
+#4.
+
+#5.
+#  5.1)
+#  5.2)
+#  5.3)
+
+#6.
+#  6.1)
+#  6.2)
+
+#7.
+
+#8.
+#   8.1.
+#   8.2
+#   8.3.
 
 
-names = ["Sex", "Length", "Diameter", "Height", "Whole weight", "Shucked weight", "Viscera weight", "Shell weight", "Rings"]
-text = pd.read_csv("data.csv", names=names)
 
-text.iloc[:, -1].value_counts()
 
-s = SMOM()
-a, b = s.split_classes(text, 1)
-print(a)

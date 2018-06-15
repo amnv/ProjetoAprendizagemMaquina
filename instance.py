@@ -5,11 +5,13 @@ from functools import reduce
 
 class Instance:
 
-    def __init__(self):
+    def __init__(self, label):
         # tuple key where key is the neighbor and the value is the selection weight
         self.neighbors = {}
         self.nk1 = {}
         self.Fs_Fd = {}
+        self.cl = 0
+        self.label = label
 
     def set_fs_fd(self, fs):
         self.Fs_Fd = fs

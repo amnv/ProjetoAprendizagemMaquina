@@ -1,8 +1,9 @@
 import pandas as pd
-import k2nn as knn
 import math
-from instance import Instance
 import random as rd
+from sklearn.neighbors import NearestNeighbors
+import numpy
+import pandas as pd
 
 class SMOM:
     def __init__(self):
@@ -17,14 +18,25 @@ class SMOM:
 
     @staticmethod
     def nearestK3Instances(xi, sc, k1, k2):
-        k3 = max([k1,k2])
-        k3neighbors = knn.getNeighbors(sc, xi, k3)
-        k1neighbors = knn.getNeighbors(sc, xi, k1)
-        k1th = k1neighbors[0]
-        
-        distance = knn.euclideanDistance(xi, k1th, len(xi)-1)
+        k3 = max([k1,k2])    
 
-        return k3neighbors, k1th, distance
+        knn3 = NearestNeighbors(n_neighbors=k3)
+        knn3.fit(sc.iloc[:, :sc.shape[1]], sc.iloc[:, -1])
+        dist, k3neighbors  = knn3.kneighbors([xi], return_distance=True)
+        
+        k3neighbors = k3neighbors.tolist()[0]
+        dist = dist.tolist()[0]
+
+        knn1 = NearestNeighbors(n_neighbors=k1)
+        knn1.fit(sc.iloc[:, :sc.shape[1]], sc.iloc[:, -1])
+        k1neighbors = knn1.kneighbors([xi], return_distance=False).tolist()[0]
+
+        # k3neighbors = knn.getNeighbors(sc, xi, k3)
+        # k1neighbors = knn.getNeighbors(sc, xi, k1)        
+        k1th = k1neighbors[0]
+        distance = numpy.linalg.norm(xi-k1th)
+    
+        return k3neighbors, dist, k1th, distance, k3
 
     def selection_weigth(self, trapped_instances, w1, w2, r1, r2):
         """ Return a dict of weight for each instance
@@ -112,21 +124,41 @@ class SMOM:
             remainder = zeta%sc_size
             return g_for_each_xi, remainder
 
-
     @staticmethod
-    def main():
-        """neighbors = [[1,1,1,'a'], [2,2,2,'a'], [3,3,3,'b']]
-        instance = [2,3,6,'f']"""
-
-        instances = [Instance(), Instance(), Instance()]
-        instances[0]
-
-        # zeta = 16 
-        # sc = [1,2,3]
+    def nearEnemy(xi, others, k3, distance, neighbors, neighbors_distance):
+        knn3 = NearestNeighbors(n_neighbors=k3)
+        knn3.fit(others.iloc[:, :others.shape[1]], others.iloc[:, -1])
+        dist, k3neighbors = knn3.kneighbors([xi], return_distance=True)
         
-        # for i in sc:
-        #   print(SMOM.get_g_for_each_xi(i, zeta, sc))
+        k3neighbors = k3neighbors.tolist()[0]
+        dist = dist.tolist()[0]
 
-        #print(SMOM.nearestK3Instances(instance, neighbors,1,2))
+        fs = []
+        fd = []
+        count = 0
+        for i in range(len(dist)):
+            if dist[i] < distance:
+                count += 1
+                fs.append(k3neighbors[i])
+                fd.append(dist[i])
 
-SMOM.main()
+        fs.append(neighbors)
+        fd.append(neighbors_distance)
+        count += len(neighbors)
+
+        fs = numpy.array(fs).reshape(count, other.shape[1])
+        fd = fd.reshape(count, other.shape[1])
+        return fs, fd        
+        
+    @staticmethod
+    def k2_neighbors(k3_neighbor, k3_enemy, xi, k2):
+        frames = numpy.concatenate([k3_neighbor, k3_enemy])
+
+        knn = NearestNeighbors(n_neighbors=k2)
+        knn.fit(others.iloc[:, :frames.shape[1]], frames.iloc[:, -1])
+        return knn.kneighbors([xi], return_distance=False).tolist()[0]        
+        
+
+
+
+# SMOM.main()
