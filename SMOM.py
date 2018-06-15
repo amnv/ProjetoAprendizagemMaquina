@@ -22,7 +22,7 @@ class SMOM:
 
         knn3 = NearestNeighbors(n_neighbors=k3)
         knn3.fit(sc.iloc[:, :sc.shape[1]], sc.iloc[:, -1])
-        dist, k3neighbors  = knn3.kneighbors([xi], return_distance=True)
+        dist, k3neighbors = knn3.kneighbors([xi], return_distance=True)
         
         k3neighbors = k3neighbors.tolist()[0]
         dist = dist.tolist()[0]
@@ -38,16 +38,23 @@ class SMOM:
     
         return k3neighbors, dist, k1th, distance, k3
 
-    def selection_weigth(self, trapped_instances, w1, w2, r1, r2):
+    def selection_weigth(self, data, outstandings, trapped_instances, k3, w1, w2, r1, r2, xi, xi_fs_fd):
         """ Return a dict of weight for each instance
             @:param trapped_instance list of type instance
         """
-        for instance in trapped_instances:
-            for neighbor in instance.neighbors:
-                neighbor_weight = neighbor.get_list_neighbor()
+        knn3 = NearestNeighbors(n_neighbors=k3)
+        for instance in trapped_instances:                 
+            knn3.fit(data.iloc[:, :data.shape[1]], data.iloc[:, -1])
+            dist, neighbors = knn3.kneighbors([instance], return_distance=True)
+            dist = dist.tolist()[0]
+            neighbors = neighbors.tolist()[0]
+            weightDict = {str:{}}
+
+            for neighbor in range(len(neighbors)):
+                neighbor_weight = xi_fs_fd[instance][neighbor]
                 if (neighbor in self.outstanding) and (instance in neighbor.get_list_neighbor()):
                     instance.set_selection_weight(neighbor, w1)
-                elif (insta     nce in neighbor.get_list_neighbor) and (neighbor_weight != 0):
+                elif (instance in neighbor.get_list_neighbor) and (neighbor_weight != 0):
                     instance.set_selection_weight(neighbor_weight)
                 else:
                     smaller_distances = instance.ss(neighbor)
@@ -57,16 +64,18 @@ class SMOM:
                     mi = self.get_class_set(trapped_instances, mi_class)
                     minorities = self.get_class_set(trapped_instances, minorities_class_set)
                     instance.set_selection_weight(instance.selection_weight_formula(npn, w1, w2, r1, r2, trapped_instances, ma, mi, minorities))
+                weightDict[instance][neighbor] = instance.get_neighbor_weight(neighbor)
+        return weightDict
 
 
     @staticmethod
-    def filterOutstanding(sc, cl):
+    def filterOutstanding(sc, cl, minor):
         outstanding = []
         trapped = []
-
-        for instanceIndex in data[data.iloc[:, -1] == minor].shape:
-            instance = data.iloc[instanceIndex]
-            
+        
+        for instanceIndex in range(sc[sc.iloc[:, -1] == 16].shape[0]):
+            #print(instanceIndex)
+            instance = sc.iloc[instanceIndex]
             if cl[instanceIndex] != 0:
                 outstanding.append(instance)
             else:
@@ -137,30 +146,20 @@ class SMOM:
 
         fs = []
         fd = []
-        count = 0
         for i in range(len(dist)):
             if dist[i] < distance:
-                count += 1
                 fs.append(k3neighbors[i])
                 fd.append(dist[i])
 
-        fs.append(neighbors)
-        fd.append(neighbors_distance)
-        count += len(neighbors)
-
-        fs = numpy.array(fs).reshape(count, other.shape[1])
-        fd = fd.reshape(count, other.shape[1])
-        return fs, fd        
+        fs = numpy.concatenate([fs, neighbors])
+        fd = numpy.concatenate([fd, neighbors_distance])
+        
+        return k3neighbors, fs, fd        
         
     @staticmethod
-    def k2_neighbors(k3_neighbor, k3_enemy, xi, k2):
+    def k2_neighbors(data, k3_neighbor, k3_enemy, xi, k2, k3):
         frames = numpy.concatenate([k3_neighbor, k3_enemy])
-
+        #print(frames)
         knn = NearestNeighbors(n_neighbors=k2)
-        knn.fit(others.iloc[:, :frames.shape[1]], frames.iloc[:, -1])
-        return knn.kneighbors([xi], return_distance=False).tolist()[0]        
-        
-
-
-
-# SMOM.main()
+        knn.fit(data.iloc[frames, :len(frames)], data.iloc[frames, -1])
+        return knn.kneighbors([xi], return_distance=False).tolist()[0] 
