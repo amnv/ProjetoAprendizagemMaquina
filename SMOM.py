@@ -4,6 +4,7 @@ import random as rd
 from sklearn.neighbors import NearestNeighbors
 import numpy
 import pandas as pd
+from instance import Instance
 
 class SMOM:
     def __init__(self):
@@ -39,7 +40,7 @@ class SMOM:
         return k3neighbors, dist, k1th, distance, k3
 
     @staticmethod
-    def selection_weigth(data, outstandings, trapped_instances, k3, w1, w2, r1, r2, xi_fs_fd):
+    def selection_weigth(data, outstandings, trapped_instances, k3, w1, w2, r1, r2, xi_fs_fd, trapped_index):
         """ Return a dict of weight for each instance
             @:param trapped_instance list of type instance
         """
@@ -47,39 +48,29 @@ class SMOM:
 
         sw = {}
 
-        # print(trapped_instances)
-
         for xi in trapped_instances:
-            # index = data[data == instance].index
             index = data[data == xi].dropna(axis=0).index[0] 
-            # print(index)
-
-            # print(xi_fs_fd[index].keys())
 
             for xj in xi_fs_fd[index].keys():
                 xi_sw = {}
-                # print(xi_fs_fd[xj])
-                # lista = list(filter(lambda x: len(x) > 0, xi_fs_fd.values()))  
-                
+
                 vis_xj = xi_fs_fd.get(xj, {})
-                print(xi)
+                # print(xi)
                 if (xj in outstandings) and (xi in xi_fs_fd[xj].keys()):
                     xi_sw[xj] = 1 + w1/math.e              
-                    # print(neighbor)
-                #elif (xj in xi_fs_fd):
-                #     bol = xi in xi_fs_fd[xj].keys() 
-                #     print(bol)
-                
-                #elif (len(vis_xj) > 0) and (vis_xj.get(index, None) != None):
                 elif (xj in xi_fs_fd.keys()) and (index in xi_fs_fd[xj].keys()) and (xj in sw) and (index in sw[xj]):
                     print("foi")
                     sw[index][xj] = sw[xj][index]
-        print sw
-        return 0
-                # if (neighbor in self.outstanding) and (instance in neighbor.get_list_neighbor()):
-                #     instance.set_selection_weight(neighbor, w1)
-                # elif (instance in neighbor.get_list_neighbor) and (neighbor_weight != 0):
-                #     instance.set_selection_weight(neighbor_weight)
+                else:    
+                    v_xj = data.iloc[xj]
+                    smaller_distances = Instance.ss(xi, v_xj, xi_fs_fd[index]) 
+                    npn = Instance.dpn(xi, v_xj, smaller_distances, data)
+                    ma_class, mi_class, minorities_class_set = SMOM.get_classes(data.iloc[trapped_index])
+                    ma = SMOM.get_class_set(trapped_instances, ma_class)
+                    mi = SMOM.get_class_set(trapped_instances, mi_class)
+                    minorities = SMOM.get_class_set(trapped_instances, minorities_class_set)
+                    ret = Instance.selection_weight_formula(npn, w1, w2, r1, r2, trapped_instances, ma, mi, minorities)
+                    print(ret)
                 # else:
                 #     smaller_distances = instance.ss(neighbor)
                 #     npn = instance.dpn(instance, neighbor, smaller_distances)
@@ -97,7 +88,7 @@ class SMOM:
     def filterOutstanding(sc, cl, minor):
         outstanding = []
         trapped = []
-        
+        trapped_index = []
         for instanceIndex in range(sc[sc.iloc[:, -1] == 16].shape[0]):
             #print(instanceIndex)
             instance = sc.iloc[instanceIndex]
@@ -105,10 +96,11 @@ class SMOM:
                 outstanding.append(instance)
             else:
                 trapped.append(instance)
+                trapped_index.append(instanceIndex)
+        return outstanding, trapped, trapped_index
 
-        return outstanding, trapped
-
-    def get_classes(self, data):
+    @staticmethod
+    def get_classes(data):
         # Get majority class
         ma = data.iloc[:, -1].value_counts().idxmax()
 
@@ -120,8 +112,9 @@ class SMOM:
         mi_set = mi_aux[mi_aux == True].keys()
 
         return ma, mi, mi_set
-
-    def get_class_set(self, data, class_name):
+    
+    @staticmethod
+    def get_class_set(data, class_name):
         return data[data.iloc[:, -1] == class_name]
 
     def generate_synthetic_instances(self, sc, g):

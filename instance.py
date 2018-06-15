@@ -1,6 +1,7 @@
 import operator
 import math
 import k2nn
+import numpy
 from functools import reduce
 
 class Instance:
@@ -40,15 +41,17 @@ class Instance:
     def set_selection_weight(self, key, w1):
         self.neighbors[key] = (1 + w1)/math.e
 
-    def ss(self, instance):
+    @staticmethod
+    def ss(xi, xj, fs_fd):
         """Step 5.3 article
             :return list of neighbors Fs which the distance is no longer than
             the distance between this instance and the parameter
         """
-        threshold = k2nn.euclideanDistance(self, instance, len(instance))
-        return list({k: v for k, v in self.Fs_Fd.items() if k2nn.euclideanDistance(self, v, len(v)) > threshold}.keys())
+        threshold = numpy.linalg.norm(xi - xj)
+        return list({k: v for k, v in fs_fd.items() if numpy.linalg.norm(xi-v) > threshold}.keys())
 
-    def dpn(self, pri, ari, ss):
+    @staticmethod
+    def dpn(pri, ari, ss, data):
         """
         Used to find the instances set, NPN , which belong to the PN neighborhood xi.P N(xj)
         Step 5.3 article + supplementary material
@@ -64,13 +67,14 @@ class Instance:
         dist_pri_ari = reduce(operator.add, pri+ari)
 
         for xl in ss:
-            dist_mid_xl = k2nn.euclideanDistance(xl, mid, len(xl))
+            x = data.iloc[xl]
+            dist_mid_xl = numpy.linalg.norm(x - mid) 
             if dist_mid_xl <= dist_pri_ari:
                 npn.append(xl)
 
         return npn
-
-    def class_entropy(self, gama_mi, class_set):
+    @staticmethod
+    def class_entropy(gama_mi, class_set):
         gama_m = class_set.shape[0]
         ret = 0
 
@@ -78,8 +82,9 @@ class Instance:
             ret += (c / gama_mi * math.log10(c / gama_mi)) / math.log10(gama_m)
 
         return ret
-
-    def selection_weight_formula(self, npn, w1, w2, r1, r2, mc, ma, mi, minorities):
+    
+    @staticmethod
+    def selection_weight_formula(npn, w1, w2, r1, r2, mc, ma, mi, minorities):
         """formula (2) article
             :param mc class c instances
             :param ma majority class instance
@@ -91,10 +96,10 @@ class Instance:
         gama_c = mc.shape[0]
 
         # Minority classes entropy
-        e_mi = self.class_entropy(mi, minorities)
+        e_mi = Instance.class_entropy(mi, minorities)
 
         # Majority class entropy
-        e_ma = self.class_entropy(mi, minorities)
+        e_ma = Instance.class_entropy(mi, minorities)
 
         overgeneralization_factor = math.exp(r1 * (gama_mi / gama_c) + r2 * e_mi + w2 * (r1*gama_ma/gama_c + 2 * e_ma))
         difficulty_factor = math.exp(-1 * (gama_c / gama_c + gama_ma + gama_mi))
