@@ -38,6 +38,7 @@ class SMOM:
     
         return k3neighbors, dist, k1th, distance, k3
 
+    @staticmethod
     def selection_weigth(self, data, outstandings, trapped_instances, k3, w1, w2, r1, r2, xi, xi_fs_fd):
         """ Return a dict of weight for each instance
             @:param trapped_instance list of type instance
