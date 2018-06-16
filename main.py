@@ -39,9 +39,9 @@ for index, xi in sc.iterrows():
 #3.
 cl = Nbdos().nbdos(data, sc, k2, k2_neighbors, rTh, nTh)
 #4.
-outstandings, trappeds, trapped_index = SMOM.filterOutstanding(sc, cl, min_class)       
+outstandings, trappeds = SMOM.filterOutstanding(sc, cl, min_class)       
 #5.
-dic = SMOM.selection_weigth(data, outstandings, trappeds, k3, w1, w2, r1, r2, xi_fs_fd, trapped_index)
+dic = SMOM.selection_weigth(data, outstandings, trappeds, k3, w1, w2, r1, r2, xi_fs_fd, min_class)
 
 #6.
 xipj = probability_distribution(xi, k1neighbors, w1)

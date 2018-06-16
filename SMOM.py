@@ -40,7 +40,7 @@ class SMOM:
         return k3neighbors, dist, k1th, distance, k3
 
     @staticmethod
-    def selection_weigth(data, outstandings, trapped_instances, k3, w1, w2, r1, r2, xi_fs_fd, trapped_index):
+    def selection_weigth(data, outstandings, trapped_instances, k3, w1, w2, r1, r2, xi_fs_fd, minor):
         """ Return a dict of weight for each instance
             @:param trapped_instance list of type instance
         """
@@ -65,11 +65,14 @@ class SMOM:
                     v_xj = data.iloc[xj]
                     smaller_distances = Instance.ss(xi, v_xj, xi_fs_fd[index]) 
                     npn = Instance.dpn(xi, v_xj, smaller_distances, data)
-                    ma_class, mi_class, minorities_class_set = SMOM.get_classes(data.iloc[trapped_index])
-                    ma = SMOM.get_class_set(trapped_instances, ma_class)
-                    mi = SMOM.get_class_set(trapped_instances, mi_class)
-                    minorities = SMOM.get_class_set(trapped_instances, minorities_class_set)
-                    ret = Instance.selection_weight_formula(npn, w1, w2, r1, r2, trapped_instances, ma, mi, minorities)
+                    vals = data[data.iloc[:, -1] == minor]
+                    ma_class, mi_class, minorities_class_set = SMOM.get_classes(data)
+                    ma = SMOM.get_class_set(data, ma_class)
+                    mi = SMOM.get_class_set(data, minor)
+                    print(data.iloc[:, -1])
+                    # minorities_class_set = {}
+                    minorities = data[data.iloc[:, -1] == [1,25,2,26,29]]
+                    ret = Instance.selection_weight_formula(npn, w1, w2, r1, r2, vals, ma, mi, minorities)
                     print(ret)
                 # else:
                 #     smaller_distances = instance.ss(neighbor)
@@ -88,16 +91,14 @@ class SMOM:
     def filterOutstanding(sc, cl, minor):
         outstanding = []
         trapped = []
-        trapped_index = []
-        for instanceIndex in range(sc[sc.iloc[:, -1] == 16].shape[0]):
+        for instanceIndex in range(sc[sc.iloc[:, -1] == minor].shape[0]):
             #print(instanceIndex)
             instance = sc.iloc[instanceIndex]
             if cl[instanceIndex] != 0:
                 outstanding.append(instance)
             else:
                 trapped.append(instance)
-                trapped_index.append(instanceIndex)
-        return outstanding, trapped, trapped_index
+        return outstanding, trapped
 
     @staticmethod
     def get_classes(data):
@@ -109,12 +110,14 @@ class SMOM:
 
         # Get minority classes set
         mi_aux = data.iloc[:, -1].value_counts() == data.iloc[:, -1].value_counts().min()
-        mi_set = mi_aux[mi_aux == True].keys()
-
+        mi_set = mi_aux[mi_aux == True]
+        print(mi_set)
         return ma, mi, mi_set
     
     @staticmethod
     def get_class_set(data, class_name):
+        # print(">>> " + str(data.iloc[:, -1].size) )
+        # print(class_name)
         return data[data.iloc[:, -1] == class_name]
 
     def generate_synthetic_instances(self, sc, g):
