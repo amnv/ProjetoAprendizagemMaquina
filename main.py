@@ -5,7 +5,7 @@ import pandas as pd
 # import main2
 
 data = pd.read_csv("data/data.csv", header=None)
-data = data.iloc[:, 1:]
+data = data.iloc[:, 1:].head(500)
 #min_class = data.iloc[:, -1].value_counts().min()
 min_class = 16 #classe com 67 instancias
 k1 = 12
@@ -20,7 +20,7 @@ r2 = 0.2
 
 #1. Dividindo dados entre classe minoriataria e outros
 sc, others =  SMOM.split_classes(data, min_class) 
-
+    
 xi_fs_fd = {}
 
 #2.
@@ -39,14 +39,22 @@ for index, xi in sc.iterrows():
 #3.
 cl = Nbdos().nbdos(data, sc, k2, k2_neighbors, rTh, nTh)
 #4.
-outstandings, trappeds = SMOM.filterOutstanding(sc, cl, min_class)       
+outstandings, trappeds, index_trapped = SMOM.filterOutstanding(sc, cl, min_class)       
 #5.
 dic = SMOM.selection_weigth(data, outstandings, trappeds, k3, w1, w2, r1, r2, xi_fs_fd, min_class)
 
 #6.
-xipj = probability_distribution(xi, k1neighbors, w1)
+
+for i in range(len(trappeds)):
+    k1neighbors = SMOM.kneigbor(data, trappeds[i], k1, False)[0]
+    if (xi_fs_fd.get(index_trapped[i], None) != None):
+        print()
+        xipj = SMOM.probability_distribution(xi, index_trapped, k1neighbors, w1, xi_fs_fd.get(index_trapped[i]), data)
+        print(xipj)
+
 #  6.1)
 #  6.2)
+
 
 #7.
 

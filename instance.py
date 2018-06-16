@@ -1,9 +1,9 @@
 import operator
 import math
-import k2nn
 import numpy
 from functools import reduce
-
+import pandas as pd
+import numpy as np
 class Instance:
 
     def __init__(self, label):
@@ -78,8 +78,8 @@ class Instance:
         gama_m = class_set.shape[0]
         ret = 0
 
-        for c in class_set:
-            ret += (c / gama_mi * math.log10(c / gama_mi)) / math.log10(gama_m)
+        for index, c in class_set.iterrows():
+            ret += pd.Series.div((pd.Series.div(c, gama_mi) * pd.Series.div(c, gama_mi).apply(np.log10)), np.log10(gama_m))
 
         return ret
     
@@ -96,12 +96,13 @@ class Instance:
         gama_c = mc.shape[0]
 
         # Minority classes entropy
-        e_mi = Instance.class_entropy(mi, minorities)
+        e_mi = Instance.class_entropy(gama_mi, minorities)
 
         # Majority class entropy
-        e_ma = Instance.class_entropy(mi, minorities)
+        e_ma = Instance.class_entropy(gama_mi, minorities)
 
-        overgeneralization_factor = math.exp(r1 * (gama_mi / gama_c) + r2 * e_mi + w2 * (r1*gama_ma/gama_c + 2 * e_ma))
+        overgeneralization_factor_aux = r1 * (gama_mi/ gama_c) + r2 * e_mi + w2 * (r1* gama_ma / gama_c + 2 * e_ma)
+        overgeneralization_factor = overgeneralization_factor_aux.apply(lambda x: x**2)
         difficulty_factor = math.exp(-1 * (gama_c / gama_c + gama_ma + gama_mi))
 
         return 1 / (overgeneralization_factor + w1 * difficulty_factor)

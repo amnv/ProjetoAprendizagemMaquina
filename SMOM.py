@@ -12,6 +12,14 @@ class SMOM:
         self.trapped = []
 
     @staticmethod
+    def kneigbor(data, xi, k, return_distance):
+        knn = NearestNeighbors(n_neighbors=k)
+        knn.fit(data.iloc[:, :data.shape[1]], data.iloc[:, -1])
+        return knn.kneighbors([xi], return_distance=return_distance)
+        
+
+
+    @staticmethod
     def split_classes(data, minority_class):
         c = data[data.iloc[:, -1] == minority_class]
         not_c = data[data.iloc[:, -1] != minority_class]
@@ -58,31 +66,27 @@ class SMOM:
                 # print(xi)
                 if (xj in outstandings) and (xi in xi_fs_fd[xj].keys()):
                     xi_sw[xj] = 1 + w1/math.e              
-                elif (xj in xi_fs_fd.keys()) and (index in xi_fs_fd[xj].keys()) and (xj in sw) and (index in sw[xj]):
+                elif (xj in xi_fs_fd.keys()) and (index in xi_fs_fd[xj].keys()) and (xj in sw.keys()) and (index in sw[xj].keys()):
                     print("foi")
                     sw[index][xj] = sw[xj][index]
                 else:    
                     v_xj = data.iloc[xj]
                     smaller_distances = Instance.ss(xi, v_xj, xi_fs_fd[index]) 
                     npn = Instance.dpn(xi, v_xj, smaller_distances, data)
+                    
                     vals = data[data.iloc[:, -1] == minor]
                     ma_class, mi_class, minorities_class_set = SMOM.get_classes(data)
                     ma = SMOM.get_class_set(data, ma_class)
                     mi = SMOM.get_class_set(data, minor)
-                    print(data.iloc[:, -1])
+
+                    minorities = data[(data.iloc[:, -1] == 1) | (data.iloc[:, -1] == 25) | (data.iloc[:, -1] == 2) | (data.iloc[:, -1] == 26) | (data.iloc[:, -1] == 29)]
                     # minorities_class_set = {}
-                    minorities = data[data.iloc[:, -1] == [1,25,2,26,29]]
                     ret = Instance.selection_weight_formula(npn, w1, w2, r1, r2, vals, ma, mi, minorities)
-                    print(ret)
-                # else:
-                #     smaller_distances = instance.ss(neighbor)
-                #     npn = instance.dpn(instance, neighbor, smaller_distances)
-                #     ma_class, mi_class, minorities_class_set = self.get_classes(trapped_instances)
-                #     ma = self.get_class_set(trapped_instances, ma_class)
-                #     mi = self.get_class_set(trapped_instances, mi_class)
-                #     minorities = self.get_class_set(trapped_instances, minorities_class_set)
-                #     instance.set_selection_weight(instance.selection_weight_formula(npn, w1, w2, r1, r2, trapped_instances, ma, mi, minorities))
-                # weightDict[instance][neighbor] = instance.get_neighbor_weight(neighbor)
+                    #print(ret)
+                    xi_sw[xj] = ret
+               
+            sw[index] = xi_sw
+            print("foi aqui")
         
         # return weightDict
 
@@ -91,6 +95,7 @@ class SMOM:
     def filterOutstanding(sc, cl, minor):
         outstanding = []
         trapped = []
+        index_trapped = []
         for instanceIndex in range(sc[sc.iloc[:, -1] == minor].shape[0]):
             #print(instanceIndex)
             instance = sc.iloc[instanceIndex]
@@ -98,7 +103,9 @@ class SMOM:
                 outstanding.append(instance)
             else:
                 trapped.append(instance)
-        return outstanding, trapped
+                index_trapped.append(instanceIndex)
+        
+        return outstanding, trapped, index_trapped
 
     @staticmethod
     def get_classes(data):
@@ -111,7 +118,6 @@ class SMOM:
         # Get minority classes set
         mi_aux = data.iloc[:, -1].value_counts() == data.iloc[:, -1].value_counts().min()
         mi_set = mi_aux[mi_aux == True]
-        print(mi_set)
         return ma, mi, mi_set
     
     @staticmethod
@@ -184,3 +190,29 @@ class SMOM:
         knn = NearestNeighbors(n_neighbors=k2)
         knn.fit(data.iloc[frames, :len(frames)], data.iloc[frames, -1])
         return knn.kneighbors([xi], return_distance=False).tolist()[0] 
+
+    @staticmethod
+    def probability_distribution(xi, index_trapped, k1neighbors, w1, fs_fd, data): # the return is a list of probabilities with the ormat [xj, xipj], xj is the instance from a different class and xipj it probability
+        xipj = [] 
+        contains_class_c = True
+        weightlist = []
+
+        for xj_index in k1neighbors: 
+            xj = data.iloc[xj_index]
+            smaller_distances= Instance.ss(xi, xj, fs_fd)
+            npn = Instance.dpn(xi, xj, smaller_distances, data)
+            
+            for element in npn:
+                print(element) 
+                if element[-2][-1] == xi[-1]: #element.class == c 
+                    contains_class_c = False
+                    break
+                
+            if(xj[-2][-1] != xi[-1]):
+                    xipj.append([xj,xi.get_neighbor_weight(xj)/(math.sum(weightlist))])
+
+        if flag:
+            weight = 1 + (w1/math.e)
+            k1neighbors.append([xi, weight])
+            
+        return xipj
