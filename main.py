@@ -41,7 +41,7 @@ cl = Nbdos().nbdos(data, sc, k2, k2_neighbors, rTh, nTh)
 #4.
 outstandings, trappeds, index_trapped = SMOM.filterOutstanding(sc, cl, min_class)       
 #5.
-dic = SMOM.selection_weigth(data, outstandings, trappeds, k3, w1, w2, r1, r2, xi_fs_fd, min_class)
+sw = SMOM.selection_weigth(data, outstandings, trappeds, k3, w1, w2, r1, r2, xi_fs_fd, min_class)
 
 #6.
 
@@ -49,7 +49,7 @@ for i in range(len(trappeds)):
     k1neighbors = SMOM.kneigbor(data, trappeds[i], k1, False)[0]
     if (xi_fs_fd.get(index_trapped[i], None) != None):
         print()
-        xipj = SMOM.probability_distribution(xi, index_trapped, k1neighbors, w1, xi_fs_fd.get(index_trapped[i]), data)
+        xipj = SMOM.probability_distribution(xi, index_trapped[i], k1neighbors, w1, xi_fs_fd.get(index_trapped[i]), data, sw)
         print(xipj)
 
 #  6.1)

@@ -5,6 +5,8 @@ from sklearn.neighbors import NearestNeighbors
 import numpy
 import pandas as pd
 from instance import Instance
+import operator
+from functools import reduce
 
 class SMOM:
     def __init__(self):
@@ -88,7 +90,8 @@ class SMOM:
             sw[index] = xi_sw
             print("foi aqui")
         
-        # return weightDict
+        print(len(sw))
+        return sw
 
 
     @staticmethod
@@ -126,14 +129,17 @@ class SMOM:
         # print(class_name)
         return data[data.iloc[:, -1] == class_name]
 
-    def generate_synthetic_instances(self, sc, g):
+    def generate_synthetic_instances(self, sc, g, trapped, weight):
         xj = 0
         si = []
         for times in range(g):
-            for i in sc:
-                if i in self.trapped:
-                    xj = i.get_neighbor_high_weight()
+            for index, i in sc.iterrows():
+                if i in trapped:
+                    #fazer knn distancia tolist()[0]
+                    #weight[vis] passo 6 xipj
+                    xj = i.get_neighbor_high_weight()# fazer isso
                 else:
+                    #vizinho knn
                     xj = rd.choice(i.get_nk1())
 
                 diff = (xj - i)
@@ -192,8 +198,8 @@ class SMOM:
         return knn.kneighbors([xi], return_distance=False).tolist()[0] 
 
     @staticmethod
-    def probability_distribution(xi, index_trapped, k1neighbors, w1, fs_fd, data): # the return is a list of probabilities with the ormat [xj, xipj], xj is the instance from a different class and xipj it probability
-        xipj = [] 
+    def probability_distribution(xi, index_trapped, k1neighbors, w1, fs_fd, data, sw): # the return is a list of probabilities with the ormat [xj, xipj], xj is the instance from a different class and xipj it probability
+        xipj = {} 
         contains_class_c = True
         weightlist = []
 
@@ -203,16 +209,27 @@ class SMOM:
             npn = Instance.dpn(xi, xj, smaller_distances, data)
             
             for element in npn:
-                print(element) 
-                if element[-2][-1] == xi[-1]: #element.class == c 
+                if element.iloc[-1] == xi.iloc[-1]: #element.class == c 
                     contains_class_c = False
                     break
                 
-            if(xj[-2][-1] != xi[-1]):
-                    xipj.append([xj,xi.get_neighbor_weight(xj)/(math.sum(weightlist))])
+            if(xj.iloc[-1] != xi.iloc[-1]):
+                print("passou aqui")
+                xipj[xj_index] = fs_fd.get(xj_index, 0)/(math.sum(weightlist))
 
-        if flag:
+        if not contains_class_c:
+            print("contains_class_c")
             weight = 1 + (w1/math.e)
-            k1neighbors.append([xi, weight])
-            
+            fs_fd[index_trapped] = weight
+            sw[index_trapped] = weight
+
+        
+        for xj_index in fs_fd.keys():
+            #xinkc1 = k1neighbors
+            count = 0
+            for xl in k1neighbors:
+                count += sw[xl]
+            xipj[xj_index] = pd.Series.div(sw[xj_index], count)
+        
+        print(len(sw))
         return xipj
