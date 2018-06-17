@@ -90,7 +90,6 @@ class SMOM:
             sw[index] = xi_sw
             print("foi aqui")
         
-        print(len(sw))
         return sw
 
 
@@ -225,11 +224,11 @@ class SMOM:
 
         
         for xj_index in fs_fd.keys():
-            #xinkc1 = k1neighbors
             count = 0
             for xl in k1neighbors:
-                count += sw[xl]
-            xipj[xj_index] = pd.Series.div(sw[xj_index], count)
+                if xj_index in sw:
+                    count += sw[xj_index][xl]
+                    xipj[xj_index] = pd.Series.div(sw[xj_index], count)
         
         print(len(sw))
         return xipj
